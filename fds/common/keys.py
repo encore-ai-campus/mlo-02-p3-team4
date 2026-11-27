@@ -20,9 +20,10 @@ FROZEN_REASONS_KEY = "fds:frozen_reasons"  # 지갑별 동결 사유 (Hash: 지�
 BLACKLIST_KEY = "fds:blacklist_wallets"    # 미리 알려진 위험 주소 (Set)
 # 직원이 동결을 해제한 시각 (Hash: 지갑 → ms). Spark는 이 시각 이후 거래만 다시 분석한다 (해제 직후 재동결 방지).
 UNFROZEN_AT_KEY = "fds:unfrozen_at"
-# 직원이 확인한 동결 (Set). 직원 동결·수동 동결 때 넣고, 해제 때 뺀다.
-# L5 "동결 지갑 노출"은 이 목록만 근거로 쓴다: 사람이 확인하지 않은 자동 판정(L1·L2·L3·L8 자동 동결)을
-# 다른 판정의 근거로 쓰면 오탐 하나가 상대 지갑들로 번진다 (11/19 메인넷 실측: 30분에 L5 106건).
+# 직원이 확인한 동결 (Set). 직원 동결·수동 동결·이미 동결된 지갑의 직원 확인 때 넣고, 해제 때 뺀다.
+# L5_EXPOSURE=confirmed일 때 L5 "동결 지갑 노출"의 근거로 쓴다 (기본 all은 모든 동결을 씀).
+# 사람이 확인하지 않은 자동 동결까지 근거로 쓰면 오탐 하나가 상대 지갑들로 번질 수 있어, 비교 측정용으로 남겨 둔다
+# (11/19 메인넷 실측: 30분에 L5 106건).
 CONFIRMED_FROZEN_KEY = "fds:frozen_confirmed"
 
 # 화이트리스트를 둘 수 있는 룰.

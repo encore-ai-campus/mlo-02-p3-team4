@@ -18,7 +18,7 @@ from common.keys import BLACKLIST_KEY, FROZEN_KEY, FROZEN_REASONS_KEY
 # Spark 2단계 룰. 동결 사유는 FROZEN_L1 ~ FROZEN_L8로 응답한다.
 LONG_RULES = ("L1", "L2", "L3", "L4", "L5", "L6", "L7", "L8")
 # 2단계 룰 위험도 기본값. L5는 Spark가 보낸 등급(CRITICAL, HIGH, MEDIUM)을 쓴다.
-# 경보 소비자(케이스 저장)와 관제 통계(console.py)가 같이 쓴다.
+# 경보 소비자(케이스 저장)와 관제 화면 조회 API(admin_views.py)가 같이 쓴다.
 RISK_LEVELS = {
     "L1": "HIGH", "L2": "HIGH", "L3": "HIGH", "L8": "CRITICAL",  # L8 순환 거래는 의도가 가장 분명해 CRITICAL
     "L4": "MEDIUM", "L5": "MEDIUM", "L6": "MEDIUM", "L7": "MEDIUM",

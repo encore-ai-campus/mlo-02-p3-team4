@@ -4,7 +4,7 @@
     보내는 메시지: {"type": "hello"} / {"type": "case_created" | "case_updated", "case": {...요약}}
 
 케이스 변경은 Mongo change stream(fds_cases)으로 감시한다 (main.py lifespan에서 watch_cases 시작, 복제 세트 필요).
-지금 프론트는 5초 폴링을 쓰므로(web/src/admin/data/hooks.js useLiveSync), 연결은 프론트 쪽에서 바꿀 때 쓰면 된다.
+프론트는 web/src/admin/data/hooks.js useLiveSync에서 이 주소에 연결해, 메시지가 오면 열린 화면을 다시 조회한다.
 """
 import asyncio
 import logging
@@ -44,7 +44,7 @@ def _plain(value):
 
 
 # ---------- 실시간 경보 (WebSocket) ----------
-# 관제 화면 → (웹 백엔드나 Vite 프록시가 X-Admin-Key를 붙여) → WS /api/v1/admin/ws/alerts
+# 관제 화면 → (Vite 프록시나 Nginx가 X-Admin-Key를 붙여) → WS /ws/admin
 # 새 케이스(case_created)와 케이스 변경(case_updated: 경보 합침, 직원 처리)을 바로 보낸다.
 
 _clients = set()

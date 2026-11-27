@@ -399,7 +399,7 @@ OUTBOX_DOWN_S = int(os.getenv("HEALTH_OUTBOX_DOWN_S", "300"))
 RECON_WINDOW = timedelta(minutes=int(os.getenv("HEALTH_RECON_WINDOW_MIN", "60")))
 RECON_DELAY = timedelta(minutes=int(os.getenv("HEALTH_RECON_DELAY_MIN", "5")))  # 적재 지연을 빼고 비교
 RECON_WARN, RECON_DOWN = 0.99, 0.95
-SPARK_HEARTBEAT_KEY = "fds:heartbeat:spark"     # Spark가 배치마다 epoch ms 를 남기면 자동으로 읽힘 (DE 예정)
+SPARK_HEARTBEAT_KEY = "fds:heartbeat:spark"     # Spark가 배치를 마칠 때마다 epoch ms를 남긴다 (spark/stream.py)
 SPARK_WARN_S, SPARK_DOWN_S = 60, 300
 
 CH_URL = os.getenv("CLICKHOUSE_URL", "").rstrip("/")             # 예: http://clickhouse:8123
@@ -1430,7 +1430,7 @@ async def decide_case(case_id: str, body: Decision):
     - FREEZE  → POST /cases/{id}/freeze   (검토 대기 사건 → 직원 동결)
     - DISMISS → POST /cases/{id}/dismiss  (검토 대기만 가능. 동결된 사건은 409 NOT_PENDING → RELEASE 사용)
     - RELEASE → POST /wallets/{지갑}/unfreeze (지갑 단위: 그 지갑의 동결 사건이 모두 해제됨)
-    - STR_DRAFT → 상태 변화 없음. 기록만 (policy_decisions 연결 전이라 로그)
+    - STR_DRAFT → 상태 변화 없음. 감사 원장 policy_decisions에 STR_DRAFT_SAVE 한 줄만 남김
     오류(404·409·503)는 admin.py 가 낸 그대로 돌려준다.
     """
     from app import admin as A                            # 순환 import 방지

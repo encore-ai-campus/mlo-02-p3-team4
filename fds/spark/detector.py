@@ -278,7 +278,7 @@ class Detector:
 
     def _analyze_l5(self, wallets, now, start=None):
         """L5: 블랙리스트·동결 지갑(분석 지갑 자신은 제외)과 주고받은 거래.
-        동결 지갑 = 직원이 확인한 동결만 (L5_EXPOSURE=all 이면 모든 동결)."""
+        동결 지갑 = 모든 동결 (기본 L5_EXPOSURE=all). confirmed면 직원이 확인한 동결만."""
         black = self.r.smembers(BLACKLIST_KEY)
         frozen = self.r.smembers(CONFIRMED_FROZEN_KEY if L5_EXPOSURE == "confirmed" else FROZEN_KEY)
         risky = sorted((black | frozen) - set(wallets))
