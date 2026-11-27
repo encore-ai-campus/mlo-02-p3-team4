@@ -11,7 +11,7 @@
   <img src="img/v3_09_dashboard.png" alt="" style="max-height:120mm;object-fit:cover;object-position:top">
   <div class="meta">
     문서 버전 <b>v1.3</b> · 작성일 <b>2026-11-16</b> · 대상 <b>Aegis-FDS 팀원 · 시연 진행자</b><br>
-    기준 문서 <b>Aegis-FDS 공식 프로젝트 기획서 v8.0</b> · 웹 버전 <b>React + Vite (사용자 / 관리자 분리, Mock 데이터)</b>
+    기준 문서 <b>Aegis-FDS 공식 프로젝트 기획서 v8.0</b> · 웹 버전 <b>React + Vite (사용자 / 관리자 분리, 백엔드 실데이터 연결)</b>
   </div>
 </section>
 
@@ -36,8 +36,8 @@
 <p>Aegis-FDS 웹은 <b>두 개의 화면</b>으로 나뉩니다. 주소도 다르고, 화면 코드도 따로 만들어집니다.</p>
 <table>
 <tr><th style="width:20%">화면</th><th style="width:26%">주소</th><th style="width:20%">사용자</th><th>하는 일</th></tr>
-<tr><td><b>사용자 송금 화면</b></td><td><code>http://192.168.0.22:8080</code></td><td>고객 (로그인 없음)</td><td>USDT 송금. 결과는 <b>완료 · 지연 · 거절</b>로만 쉬운 말로 안내. 탐지 기준·룰 코드는 보여 주지 않음</td></tr>
-<tr><td><b>관리자 화면</b></td><td><code>http://192.168.0.22:8080/admin</code></td><td>분석관 (로그인 필요)</td><td>경보 확인, 사건 근거 검토, 지갑 동결·해제·오탐 처리, STR 초안, 감사 기록, 시스템 상태</td></tr>
+<tr><td><b>사용자 송금 화면</b></td><td><code>http://localhost:8080</code></td><td>고객 (로그인 없음)</td><td>USDT 송금. 결과는 <b>완료 · 지연 · 거절</b>로만 쉬운 말로 안내. 탐지 기준·룰 코드는 보여 주지 않음</td></tr>
+<tr><td><b>관리자 화면</b></td><td><code>http://localhost:8080/admin</code></td><td>분석관 (로그인 필요)</td><td>경보 확인, 사건 근거 검토, 지갑 동결·해제·오탐 처리, STR 초안, 감사 기록, 시스템 상태</td></tr>
 </table>
 <p>고객에게 탐지 기준을 알려 주면 그 기준을 피해 가기 쉬워지므로, 고객 화면에는 결과만 보여 주고 근거는 관리자 화면에서만 봅니다.</p>
 <h3>탐지는 두 단계 (기획서 v8.0)</h3>
@@ -46,33 +46,37 @@
 <tr><td><b>1단계 입구 검사</b></td><td>게이트웨이 + Redis<br>최근 5분</td><td>R01~R06에 걸리면 <span class="pill p-hold">3분 보류</span> (HTTP 429, 송금만 막고 입금은 허용). R07 블랙리스트는 <span class="pill p-block">항상 차단</span> (403)</td></tr>
 <tr><td><b>2단계 심층 분석</b></td><td>Spark<br>최근 2주 <span class="lv">(시연 20분)</span></td><td>L1·L2·L3·L8 → <span class="pill p-frozen">자동 동결</span> &nbsp; L4·L5·L6·L7 → <span class="pill p-review">검토 대기</span> (담당자가 관리자 화면에서 동결 또는 오탐 처리)</td></tr>
 </table>
-<div class="box warn"><b class="t">⚠ 현재 버전의 범위 (백엔드 연결 전)</b>
-판정과 관리자 화면의 데이터는 브라우저 안의 <b>Mock(흉내) 데이터</b>입니다. 실제 자산은 움직이지 않습니다. <b>실제 데이터는 두 가지뿐</b>입니다: 실시간 거래 화면의 "메인넷 원본" 탭, 시스템 상태 화면의 "메인넷 RPC". 같은 PC·같은 브라우저에서는 송금 화면의 결과가 관리자 화면에 함께 나타나지만, 다른 PC와는 공유되지 않습니다.</div>
+<div class="box warn"><b class="t">⚠ 현재 버전의 범위 — 두 가지 모드</b>
+<b>실데이터 모드 (기본)</b>: <code>web/.env.local</code>에 <code>VITE_API_BASE=/</code>가 있으면 실제 백엔드(게이트웨이 · Spark)에 연결됩니다. 송금 화면의 송금은 게이트웨이가 판정하고, 관리자 화면은 백엔드의 사건 · 거래 · 감사 기록을 보여 줍니다. 새 경보는 <b>WebSocket</b>으로 새로고침 없이 나타납니다. 데이터 출처는 이더리움 <b>온체인 실데이터</b>, 봇이 만든 <b>BOT</b> 데이터, 송금 화면에서 보낸 송금입니다.<br>
+<b>Mock 모드</b>: <code>VITE_API_BASE</code>가 비어 있으면 브라우저 안의 흉내 데이터로 동작합니다 (같은 PC · 같은 브라우저 안에서만 공유).<br>
+어느 모드든 <b>실제 자산은 움직이지 않습니다.</b> 온체인 송금을 "출금 요청"이라고 가정해 다시 검사합니다.</div>
 
 <h1 class="sec page"><span>02</span>실행 방법 · 접속 주소</h1>
 <h3>준비물</h3>
-<ul><li><b>Node.js 22.12 이상</b>과 npm (확인: <code>node -v</code>)</li><li>Chrome 또는 Edge 브라우저 · 인터넷 연결 (메인넷 데이터용)</li></ul>
+<ul><li><b>Docker Desktop</b> (백엔드 실행용)</li><li><b>Node.js 20.19 이상 또는 22.12 이상</b>과 npm (확인: <code>node -v</code>)</li><li>Chrome 또는 Edge 브라우저 · 인터넷 연결 (메인넷 데이터용)</li><li>저장소 루트의 <code>.env</code> (<code>.env.example</code>을 복사해 값 채우기. Git에 올리지 않음)</li></ul>
 <h3>실행 순서</h3>
-<div class="step"><div class="n">1</div><div>PowerShell에서 frontend 폴더로 이동합니다.<pre>cd C:\workspace\이더리움\frontend</pre></div></div>
-<div class="step"><div class="n">2</div><div><b>처음 한 번, 그리고 라이브러리가 바뀌었을 때</b> 설치합니다. (이번 버전에서 표·차트·그래프 라이브러리가 추가되었으므로 한 번 실행)<pre>npm install</pre></div></div>
-<div class="step"><div class="n">3</div><div>개발 서버를 켭니다.<pre>npm run dev
-<span class="c"># 출력 예:  Local: http://localhost:8080/  ·  Network: http://192.168.0.22:8080/</span></pre></div></div>
-<div class="step"><div class="n">4</div><div>브라우저로 접속합니다. 팀원은 같은 네트워크에서 <code>192.168.0.22</code> 주소를 씁니다 (점이 아니라 <b>콜론 <code>:</code></b>).</div></div>
+<div class="step"><div class="n">1</div><div>저장소 루트에서 백엔드를 켭니다. 새 환경이면 Kafka 토픽 5개를 먼저 만들어야 합니다 (자세한 순서는 저장소 <code>README.md</code>의 「부록 → 로컬 실행」).<pre>docker compose up -d</pre></div></div>
+<div class="step"><div class="n">2</div><div>web 폴더로 이동해 <b>처음 한 번, 그리고 라이브러리가 바뀌었을 때</b> 설치합니다.<pre>cd web
+npm install</pre></div></div>
+<div class="step"><div class="n">3</div><div><code>web/.env.local</code>에 실데이터 연결 설정(<code>VITE_API_BASE</code>)이 있는지 확인합니다 (아래 표).</div></div>
+<div class="step"><div class="n">4</div><div>개발 서버를 켭니다.<pre>npm run dev
+<span class="c"># 출력 예:  Local: http://localhost:8080/</span></pre></div></div>
+<div class="step"><div class="n">5</div><div>브라우저로 접속합니다.</div></div>
 <table>
 <tr><th style="width:38%">주소</th><th>열리는 화면</th></tr>
-<tr><td><code>http://192.168.0.22:8080</code></td><td>사용자 송금 화면 (바로 열림)</td></tr>
-<tr><td><code>http://192.168.0.22:8080/admin</code></td><td>관리자 화면 → 로그인하지 않았으면 로그인 화면</td></tr>
+<tr><td><code>http://localhost:8080</code></td><td>사용자 송금 화면 (바로 열림)</td></tr>
+<tr><td><code>http://localhost:8080/admin</code></td><td>관리자 화면 → 로그인하지 않았으면 로그인 화면</td></tr>
 <tr><td><code>…/admin/#/alerts</code> 등</td><td>관리자 화면 안의 메뉴 (주소를 북마크해 두면 바로 열림)</td></tr>
 </table>
-<div class="step"><div class="n">5</div><div>종료는 서버 터미널에서 <code>Ctrl + C</code>.</div></div>
+<div class="step"><div class="n">6</div><div>종료는 서버 터미널에서 <code>Ctrl + C</code>.</div></div>
 <h3>배포용 실행과 설정 (선택)</h3>
 <table>
-<tr><th style="width:36%">명령 · 설정 (frontend 폴더)</th><th>용도</th></tr>
+<tr><th style="width:36%">명령 · 설정 (web 폴더)</th><th>용도</th></tr>
+<tr><td><code>.env.local</code>의 <code>VITE_API_BASE</code></td><td><code>/</code> = 실데이터 모드. Vite가 요청을 백엔드(<code>VITE_PROXY_TARGET</code>, 기본 <code>http://localhost:8000</code>)로 전달하며, 이때 루트 <code>.env</code>의 <code>GATEWAY_API_KEY</code> · <code>ADMIN_API_KEY</code>를 붙입니다 (키가 없으면 실행 오류). 비어 있으면 Mock 모드</td></tr>
+<tr><td><code>.env.local</code>의 <code>VITE_PERIOD_PROFILE</code></td><td>2단계 분석 기간 표시. <code>demo</code>(기본) = 2주→<b>20분</b>, 24시간→<b>5분</b>, 1시간→<b>1분</b> / <code>prod</code> = 실제 기간</td></tr>
 <tr><td><code>npm run build</code> → <code>npm run preview</code></td><td>배포용 파일을 만들고 8080에서 확인. <code>dist/index.html</code>(송금)과 <code>dist/admin/index.html</code>(관리자)이 따로 만들어짐</td></tr>
-<tr><td><code>.env.local</code>의 <code>VITE_PERIOD_PROFILE</code></td><td>2단계 분석 기간. <code>demo</code>(기본) = 2주→<b>20분</b>, 24시간→<b>5분</b>, 1시간→<b>1분</b> / <code>prod</code> = 실제 기간</td></tr>
-<tr><td><code>.env.local</code>의 <code>VITE_API_BASE</code></td><td>백엔드 주소. 비어 있으면 Mock 데이터 사용</td></tr>
 </table>
-<p class="lv">PowerShell에서 npm이 "스크립트를 실행할 수 없으므로"로 막히면 <code>npm.cmd run dev</code>로 실행하거나 <code>Set-ExecutionPolicy -Scope CurrentUser RemoteSigned</code>를 한 번 실행합니다. 팀원 접속에는 8080 방화벽 허용(<code>firewall_setup.ps1</code>, 관리자 권한)이 필요합니다.</p>
+<p class="lv">PowerShell에서 npm이 "스크립트를 실행할 수 없으므로"로 막히면 <code>npm.cmd run dev</code>로 실행하거나 <code>Set-ExecutionPolicy -Scope CurrentUser RemoteSigned</code>를 한 번 실행합니다.</p>
 
 <h1 class="sec page"><span>03</span>사용자 송금 화면</h1>
 <div class="row">
@@ -110,12 +114,13 @@
 </div>
 </div>
 <div class="box"><b class="t">💡 시연 도우미 (화면 아래, 접혀 있음)</b>
-실제 고객 화면에는 없는 시연용 버튼 모음입니다: 새 주소 채우기, 950 USDT(쪼개기 금액), 60,000 USDT(대량), 제재 지갑 주소, 가짜 주소 만들기, 초기화, 관리자 화면 열기. <b>[초기화]</b>는 잔액·내역·탐지 기록을 처음 상태로 되돌립니다.</div>
+실제 고객 화면에는 없는 시연용 버튼 모음입니다: 새 주소 채우기, 950 USDT(쪼개기 금액), 60,000 USDT(대량), 제재 지갑 주소, 가짜 주소 만들기, 초기화, 관리자 화면 열기. <b>[초기화]</b>는 잔액·내역·탐지 기록을 처음 상태로 되돌립니다. 실데이터 모드에서는 이 화면의 잔액·내역만 되돌리며, 게이트웨이에 걸린 보류·동결은 그대로 남습니다.<br>
+<b>주의:</b> 대량 송금(R05) 기준이 <b>100,000 USDT</b>로 바뀌어, [60,000 USDT (대량)] 버튼 금액으로는 R05에 걸리지 않습니다. R05를 보이려면 100,000 이상을 직접 입력합니다.</div>
 
 <h1 class="sec page"><span>04</span>관리자 로그인과 권한</h1>
 <div class="row">
 <div style="flex:1.2">
-<div class="step"><div class="n">1</div><div>주소창에 <code>http://192.168.0.22:8080/admin</code> 입력 → 로그인 화면이 열립니다. 로그인하지 않으면 관리자 화면의 어떤 메뉴 주소로 들어와도 로그인 화면으로 돌아옵니다.</div></div>
+<div class="step"><div class="n">1</div><div>주소창에 <code>http://localhost:8080/admin</code> 입력 → 로그인 화면이 열립니다. 로그인하지 않으면 관리자 화면의 어떤 메뉴 주소로 들어와도 로그인 화면으로 돌아옵니다.</div></div>
 <div class="step"><div class="n">2</div><div>아래 계정 중 하나로 로그인합니다. 화면 아래 "시연용 계정" 글자를 누르면 자동으로 채워집니다.</div></div>
 <table>
 <tr><th style="width:24%">아이디</th><th style="width:24%">비밀번호</th><th>권한</th></tr>
@@ -134,7 +139,7 @@
 <tr><th style="width:24%">상단 바 요소</th><th>설명</th></tr>
 <tr><td>메뉴</td><td><b>대시보드 · 실시간 거래 · 경보 · 자금 흐름 · 감사 로그 · 시스템 상태</b>. "경보" 옆 노란 숫자 = 검토 대기 사건 수</td></tr>
 <tr><td>검색창</td><td>지갑 주소 · 사건 ID · tx_hash 일부(3글자 이상)를 입력하면 결과가 뜨고, 누르면 해당 사건으로 이동</td></tr>
-<tr><td>● 실시간 · demo <span class="lv">Mock</span></td><td>새 데이터가 2초마다 들어오는 중. <b>누르면 일시정지</b> — 화면을 천천히 볼 때 사용. demo = 시연 기간(20분/5분/1분), Mock = 백엔드 연결 전</td></tr>
+<tr><td>● 실시간 · demo <span class="lv">Mock</span></td><td>새 데이터를 받는 중 (실데이터 모드는 새 경보가 WebSocket으로 바로 반영). <b>누르면 일시정지</b> — 화면을 천천히 볼 때 사용. demo = 시연 기간(20분/5분/1분). <span class="lv">Mock</span> 글자는 Mock 모드일 때만 보이고, 실데이터 모드에서는 없습니다</td></tr>
 <tr><td>다크 / 라이트</td><td>화면 밝기 전환 (발표 화면이 밝으면 라이트 권장)</td></tr>
 <tr><td>이름 · 로그아웃</td><td>로그인한 담당자와 권한</td></tr>
 </table>
@@ -146,7 +151,7 @@
 <tr><td><span class="pill p-frozen">빨강</span></td><td>2단계 <b>자동 동결</b> (L1·L2·L3·L8), 기준을 넘은 근거</td></tr>
 <tr><td><span class="pill p-review">노랑</span></td><td>2단계 <b>검토 대기</b> (L4~L7) — 담당자가 처리할 일</td></tr>
 <tr><td><span class="pill p-high">CRITICAL</span> <span class="pill p-mid">HIGH</span> <span class="pill p-review">MEDIUM</span></td><td>사건 <b>등급</b>: 긴급 · 높음 · 보통</td></tr>
-<tr><td>지갑 옆 작은 표시</td><td><b>메인넷</b>(온체인) · <b>시뮬레이터</b>(검증 봇, R01~R06 면제) · <b>고객 앱</b>(송금 화면) · <b>OFAC SDN</b>(제재) · <b>새 지갑</b>(처음 본 지 24시간 이내)</td></tr>
+<tr><td>지갑 옆 작은 표시</td><td><b>메인넷</b>(온체인) · <b>시뮬레이터</b>(<code>wal_</code> 지갑) · <b>고객 앱</b>(송금 화면, Mock 모드) · <b>거래소</b> · <b>OFAC SDN</b>(제재) · <b>새 지갑</b>(처음 본 지 24시간 이내). 봇이 만든 지갑(<code>BOT-</code>)은 지갑 옆에 표시하지 않고, 동그라미 안의 <b>B</b>와 "출처" 칸의 <b>BOT</b>으로 구분합니다</td></tr>
 </table>
 <p>색만으로 구분하지 않도록 항상 글자(검토 대기, 자동 동결 등)와 아이콘을 함께 표시합니다. 주소에 마우스를 올리면 전체 주소가, 시각에 올리면 정확한 날짜·시간이 보입니다.</p>
 
@@ -166,7 +171,7 @@
 
 <h1 class="sec page"><span>07</span>경보 목록 (S1) — "무엇부터 처리할까?"</h1>
 <div class="fig"><img src="img/v3_10_alerts.png" style="max-height:96mm"><div class="cap">경보 목록 — 왼쪽 표, 오른쪽 미리보기</div></div>
-<div class="step"><div class="n">1</div><div>위쪽 버튼으로 거르기: <b>전체 · 검토 대기 · CRITICAL · HIGH · MEDIUM · 동결 · 오탐 처리</b>. 오른쪽 칸에서 주소·사건 ID 검색, 룰, 출처(온체인/시뮬레이터/고객 앱), 금액, 기간을 고릅니다.</div></div>
+<div class="step"><div class="n">1</div><div>위쪽 버튼으로 거르기: <b>전체 · 검토 대기 · CRITICAL · HIGH · MEDIUM · 동결 · 오탐 처리</b>. 오른쪽 칸에서 주소·사건 ID 검색, 룰, 출처(온체인/BOT/시뮬레이터/앱), 금액, 기간을 고릅니다.</div></div>
 <div class="step"><div class="n">2</div><div>표의 제목(탐지 · 등급 · 룰 · 금액 · 상태)을 누르면 정렬됩니다. 노란 세로줄이 있는 줄 = 검토 대기.</div></div>
 <div class="step"><div class="n">3</div><div>줄을 <b>한 번</b> 누르면 오른쪽 미리보기, <b>두 번</b>(또는 Enter) 누르면 사건 상세로 이동합니다. 새로 들어온 경보는 잠깐 파랗게 강조되고, 검토 대기·CRITICAL 경보는 오른쪽 아래 알림으로도 뜹니다 ([열기]로 이동).</div></div>
 <div class="row">
@@ -180,7 +185,7 @@
 <tr><td>대상 지갑</td><td>걸린 지갑과 출처 표시</td></tr>
 <tr><td>상대 · 내용</td><td>예: "OFAC SDN에게서 받음", "처음 본 31곳"</td></tr>
 <tr><td>관련 금액</td><td>근거 거래의 합계</td></tr>
-<tr><td>출처</td><td>온체인 · SIM · 앱</td></tr>
+<tr><td>출처</td><td>온체인 · BOT(봇이 만든 데이터) · SIM · 앱</td></tr>
 <tr><td>상태</td><td>검토 대기 · 자동 동결 · 직원 동결 · 오탐 처리 · 동결 해제</td></tr>
 </table>
 </div>
@@ -205,14 +210,14 @@
 <tr><td><b>🔒 동결 (FROZEN_Lx)</b></td><td>검토 대기</td><td>지갑 송금이 403으로 즉시 거절 (입금은 가능). 상태 → <span class="pill p-staff">직원 동결</span></td></tr>
 <tr><td><b>오탐 처리</b></td><td>검토 대기</td><td>정상 거래로 종결. 지갑 제한 없음. 상태 → 오탐 처리</td></tr>
 <tr><td><b>동결 해제</b></td><td>자동 동결 · 직원 동결</td><td>다시 송금 가능. 해제 이전 기록으로는 다시 자동 동결하지 않음</td></tr>
-<tr><td><b>STR 초안</b></td><td>항상</td><td>의심거래보고서 초안 표시 → [복사] 또는 [내려받기 (.txt)]</td></tr>
+<tr><td><b>STR 초안</b></td><td>항상</td><td>의심거래보고서 초안 표시 → [복사] 또는 [내려받기 (.txt)]. 실데이터 모드에서는 백엔드가 사건 근거로 만든 초안을 보여 주고, <b>분석관 의견</b>을 적어 [의견 저장]하면 초안 5번 항목과 감사 로그에 반영됩니다</td></tr>
 </table>
 <div class="row">
 <div style="flex:1.1">
 <div class="step"><div class="n">1</div><div>[동결] · [오탐 처리] · [동결 해제]를 누르면 <b>확인 창</b>이 뜨고, 이 조치가 무엇을 바꾸는지 설명합니다.</div></div>
 <div class="step"><div class="n">2</div><div><b>사유를 4글자 이상 입력</b>해야 버튼이 눌립니다. 사유는 감사 로그에 영구히 남습니다.</div></div>
 <div class="step"><div class="n">3</div><div>완료되면 오른쪽 아래 알림, 상태 배지 변경, <b>조치 기록</b>에 담당자·시각·사유가 추가됩니다.</div></div>
-<div class="step"><div class="n">4</div><div><b>고객 앱 지갑</b>(송금 화면의 지갑)을 동결하면 송금 화면에서 바로 "송금이 제한된 계정입니다"로 바뀌고, 해제하면 다시 보낼 수 있습니다.</div></div>
+<div class="step"><div class="n">4</div><div><b>고객 앱 지갑</b>(송금 화면의 지갑)을 동결하면 그 지갑의 다음 송금부터 "송금이 제한된 계정입니다"로 거절되고, 해제하면 다시 보낼 수 있습니다.</div></div>
 <div class="fig"><img src="img/v3_15_timeline.png" style="max-height:44mm"><div class="cap">조치 기록 — 사건 생성 · 열람 · 동결</div></div>
 </div>
 <div class="fig" style="flex:.9"><img src="img/v3_13_confirm.png" style="max-height:74mm"><div class="cap">동결 확인 창 — 결과 설명과 사유(필수)</div></div>
@@ -236,8 +241,8 @@
 <h1 class="sec page"><span>10</span>실시간 거래 · 감사 로그 · 시스템 상태</h1>
 <h3>실시간 거래</h3>
 <div class="fig"><img src="img/v3_18_transfers.png" style="max-height:68mm"><div class="cap">게이트웨이 판정 탭 — "보류" 필터</div></div>
-<p><b>게이트웨이 판정</b> 탭: 들어오는 거래와 판정(통과 · 통과·상대 보류 · 보류 · 차단 · 동결 지갑 거절)과 걸린 룰. 분당 약 1,000건을 모두 보여 주지 않고 <b>일부 표본 + 모든 보류·차단·거절</b>을 보여 줍니다. 출처 "앱" = 송금 화면에서 보낸 요청.<br>
-<b>메인넷 원본 (실데이터)</b> 탭: 이더리움 공개 노드에서 약 12초마다 받는 <b>실제 USDT 거래</b>. tx를 누르면 Etherscan에서 확인됩니다 (판정은 백엔드 연결 후).</p>
+<p><b>게이트웨이 판정</b> 탭: 들어오는 거래와 판정(통과 · 통과·상대 보류 · 보류 · 차단 · 동결 지갑 거절)과 걸린 룰. 실데이터 모드에서는 게이트웨이에 기록된 <b>최근 300건</b>을 보여 줍니다. "출처" 칸: <b>온체인</b> = 실제 이더리움 주소의 송금(송금 화면에서 보낸 요청도 0x 주소라 온체인으로 표시) · <b>BOT</b> = 봇이 만든 송금 · <b>앱</b> = 송금 화면에서 보낸 요청(Mock 모드).<br>
+<b>메인넷 원본 (실데이터)</b> 탭: 이더리움 공개 노드에서 약 12초마다 받는 <b>실제 USDT 거래</b>. tx를 누르면 Etherscan에서 확인됩니다.</p>
 <div class="row">
 <div>
 <h3>감사 로그</h3>
@@ -247,19 +252,19 @@
 <div>
 <h3>시스템 상태</h3>
 <div class="fig"><img src="img/v3_20_system.png" style="max-height:58mm"><div class="cap">시스템 상태</div></div>
-<p>수집기 · 게이트웨이 · Redis · Kafka · Spark · MongoDB · ClickHouse · 관제 API · Discord 상태와 Kafka 토픽 지연(lag). 초록 = 정상 · 주황 = 주의 · 빨강 = 중단 · 보라 = Mock. <b>백엔드 연결 전에는 "메인넷 RPC" 한 칸만 실제 값</b>이고 나머지는 예시입니다.</p>
+<p>수집기 · 게이트웨이 · Redis · Kafka · Spark · MongoDB · ClickHouse · 관제 API · Discord 상태와 Kafka 토픽 지연(lag). 초록 = 정상 · 주황 = 주의 · 빨강 = 중단 · 보라 = Mock. 실데이터 모드에서는 백엔드가 알려 주는 상태를 5초마다 새로 받습니다. <b>Mock 모드에서는 "메인넷 RPC" 한 칸만 실제 값</b>이고 나머지는 예시입니다.</p>
 </div>
 </div>
 
 <h1 class="sec page"><span>11</span>판정 기준 한눈에 보기</h1>
-<h3>1단계 — 게이트웨이 (최근 5분, 시뮬레이터 지갑은 R01~R06 면제)</h3>
+<h3>1단계 — 게이트웨이 (최근 5분, 화이트리스트에 등록한 지갑은 해당 룰 면제)</h3>
 <table>
 <tr><th style="width:7%">룰</th><th style="width:17%">이름</th><th>기준</th><th style="width:15%">보류 대상</th><th style="width:22%">걸린 거래 · 응답</th></tr>
 <tr><td>R01</td><td>초고빈도 송금</td><td>같은 지갑 송금 5건 이상 (이번 포함)</td><td>보내는 지갑</td><td>거절 · 429</td></tr>
 <tr><td>R02</td><td>쪼개기 송금</td><td>900~990 USDT 송금 3회 이상</td><td>보내는 지갑</td><td>거절 · 429</td></tr>
 <tr><td>R03</td><td>자금 집금</td><td>서로 다른 보낸 지갑 5개 이상이 입금</td><td>받는 지갑</td><td>통과 · 200</td></tr>
 <tr><td>R04</td><td>자금 분산</td><td>서로 다른 받는 지갑 5개 이상으로 송금</td><td>보내는 지갑</td><td>거절 · 429</td></tr>
-<tr><td>R05</td><td>대량 송금</td><td>1건 50,000 USDT 이상</td><td>보내는 지갑</td><td>거절 · 429</td></tr>
+<tr><td>R05</td><td>대량 송금</td><td>1건 100,000 USDT 이상</td><td>보내는 지갑</td><td>거절 · 429</td></tr>
 <tr><td>R06</td><td>핑퐁 거래</td><td>A→B 뒤 5분 안에 B→A</td><td>먼저 보낸 A</td><td>통과 · 200</td></tr>
 <tr><td>R07</td><td>블랙리스트</td><td>보내거나 받는 지갑이 제재 목록</td><td>항상 차단</td><td>거절 · 403</td></tr>
 </table>
@@ -267,13 +272,13 @@
 <table>
 <tr><th style="width:7%">룰</th><th style="width:17%">이름</th><th>기준</th><th style="width:15%">조치</th><th style="width:12%">등급*</th></tr>
 <tr><td>L1</td><td>반복 보류</td><td>2주(20분) 안에 1단계 보류 3회 이상 — <b>새 보류만</b> 셈 (보류 중 재시도는 제외)</td><td><span class="pill p-frozen">자동 동결</span></td><td>HIGH</td></tr>
-<tr><td>L2</td><td>쪼개서 대량 송금</td><td>24시간(5분) 누적 50,000 이상, 한 건은 모두 50,000 미만</td><td><span class="pill p-frozen">자동 동결</span></td><td>HIGH</td></tr>
+<tr><td>L2</td><td>쪼개서 대량 송금</td><td>24시간(5분) 누적 100,000 이상, 한 건은 모두 100,000 미만</td><td><span class="pill p-frozen">자동 동결</span></td><td>HIGH</td></tr>
 <tr><td>L3</td><td>장기 쪼개기</td><td>2주(20분) 안에 900~990 송금 10회 이상</td><td><span class="pill p-frozen">자동 동결</span></td><td>HIGH</td></tr>
 <tr><td>L4</td><td>경유 지갑</td><td>1,000 이상 받고 1시간(1분) 안에 80% 이상 재송금, 3회</td><td><span class="pill p-review">검토 대기</span></td><td>MEDIUM</td></tr>
 <tr><td>L5</td><td>위험 지갑 접촉</td><td>제재 지갑에게서 받음 = CRITICAL / 제재 지갑에 보냄 = HIGH / 동결 지갑과 누적 10,000 이상** = MEDIUM. R07 차단 시도는 제외</td><td><span class="pill p-review">검토 대기</span></td><td>유형별</td></tr>
 <tr><td>L6</td><td>급격한 활동 증가</td><td>오늘 거래 수가 2주 하루 평균의 10배 이상, 최소 20건</td><td><span class="pill p-review">검토 대기</span></td><td>MEDIUM</td></tr>
 <tr><td>L7</td><td>새 상대 집중</td><td>24시간(5분) 안에 처음 보내는 상대 20곳 이상</td><td><span class="pill p-review">검토 대기</span></td><td>MEDIUM</td></tr>
-<tr><td>L8</td><td>순환 거래</td><td>A→B→C→A, 24시간(5분) 안에 80% 이상 돌아옴, 건당 1,000 이상</td><td><span class="pill p-frozen">자동 동결</span></td><td>HIGH</td></tr>
+<tr><td>L8</td><td>순환 거래</td><td>A→B→C→A, 24시간(5분) 안에 80% 이상 돌아옴, 건당 1,000 이상</td><td><span class="pill p-frozen">자동 동결</span></td><td>CRITICAL</td></tr>
 </table>
 <p class="lv">* L5를 뺀 등급과 ** L5 MEDIUM 금액 기준(10,000 USDT)은 기획서에 없어 임시로 정한 값입니다. 팀 확정 후 바뀔 수 있습니다.</p>
 
@@ -284,12 +289,12 @@
 <tr><td>1</td><td>전체 상황</td><td>관리자 대시보드 → 할 일 안내 · 거래 흐름 · 룰별 건수 설명</td><td>검토 대기 n건, CRITICAL 안내</td></tr>
 <tr><td>2</td><td>실제 데이터</td><td>실시간 거래 → [메인넷 원본] 탭 → tx 클릭</td><td>"● LIVE 메인넷", Etherscan에서 실제 거래</td></tr>
 <tr><td>3</td><td>정상 송금</td><td>송금 화면: [새 주소 채우기] → 1,500 → [송금]</td><td>"송금이 완료되었습니다"</td></tr>
-<tr><td>4</td><td>쪼개기 → 보류</td><td>같은 주소로 950 → 960 → 970</td><td>3번째에 "잠시 지연" + 배너. 관리자 실시간 거래(보류 필터)에 출처 "앱", R02</td></tr>
+<tr><td>4</td><td>쪼개기 → 보류</td><td>같은 주소로 950 → 960 → 970</td><td>3번째에 "잠시 지연" + 배너. 관리자 실시간 거래(보류 필터)에 R02 (출처: 실데이터 모드 "온체인", Mock 모드 "앱")</td></tr>
 <tr><td>5</td><td>블랙리스트</td><td>[제재 지갑 주소] → 100 → [송금]</td><td>"보낼 수 없는 주소입니다". 관리자에는 R07 차단</td></tr>
 <tr><td>6</td><td>주소 오염</td><td>[가짜 주소 (앞뒤만 같게)]</td><td>빨간 경고, 확인 체크 전에는 송금 불가</td></tr>
 <tr><td>7</td><td>검토 대기 처리</td><td>관리자 경보 → [검토 대기] → CRITICAL 줄 두 번 클릭 → 근거 설명 → [동결] → 사유 입력</td><td>상태 "직원 동결", 조치 기록에 이름·사유</td></tr>
 <tr><td>8</td><td>오탐 처리</td><td>다른 검토 대기 사건 → [오탐 처리] → 사유</td><td>상태 "오탐 처리", 검토 대기 수 1 감소</td></tr>
-<tr><td>9</td><td>STR</td><td>[STR 초안] → [내려받기]</td><td>근거가 채워진 초안 파일, 감사 로그에 기록</td></tr>
+<tr><td>9</td><td>STR</td><td>[STR 초안] → (실데이터 모드) 분석관 의견 입력 → [의견 저장] → [내려받기]</td><td>근거가 채워진 초안 파일, 감사 로그에 기록</td></tr>
 <tr><td>10</td><td>자금 흐름</td><td>자금 흐름 → L8 사건 → 2단계 펼치기 → 시간 범위 좁히기</td><td>A→B→C→A 빨간 경로, 돌아온 비율</td></tr>
 <tr><td>11</td><td>감사 · 권한</td><td>감사 로그 확인 → 로그아웃 → <span class="acc">viewer</span>로 로그인 → 사건 열기</td><td>조치 버튼이 눌리지 않음</td></tr>
 </table>
@@ -300,14 +305,14 @@
 <tr><th style="width:36%">증상</th><th>원인 · 해결</th></tr>
 <tr><td>로그인 시 "아이디 또는 비밀번호가 맞지 않습니다"</td><td>등록된 계정은 <span class="acc">analyst / aegis1234</span>, <span class="acc">viewer / view1234</span> 두 개뿐입니다. 본인 이름 등 다른 아이디는 들어갈 수 없습니다 (추가하려면 <code>src/admin/auth.js</code>).</td></tr>
 <tr><td><code>/admin</code>을 열었는데 송금 화면이 나옴</td><td>서버를 새 버전으로 다시 켰는지 확인 (<code>Ctrl + C</code> 후 <code>npm run dev</code>). 주소 끝에 <code>/admin/</code>처럼 슬래시를 붙여도 됩니다.</td></tr>
-<tr><td>관리자 화면에 내 송금 결과가 안 보임</td><td>송금 화면과 관리자 화면을 <b>같은 PC · 같은 브라우저</b>로 열어야 합니다 (백엔드 연결 전 Mock). 다른 PC · 시크릿 창과는 공유되지 않습니다.</td></tr>
-<tr><td>송금 화면에서 계속 "잠시 지연"</td><td>3분 보류 중입니다. 배너의 남은 시간이 지나면 풀립니다. 또는 시연 도우미 → [초기화].</td></tr>
-<tr><td>송금 화면에서 "송금이 제한된 계정"</td><td>2단계에서 동결되었습니다. 관리자 화면 → 해당 사건 → [동결 해제], 또는 [초기화].</td></tr>
+<tr><td>관리자 화면에 내 송금 결과가 안 보임</td><td>실데이터 모드: 백엔드(<code>docker compose</code>)가 켜져 있는지, <code>web/.env.local</code>에 <code>VITE_API_BASE=/</code>가 있는지 확인. Mock 모드: 송금 화면과 관리자 화면을 <b>같은 PC · 같은 브라우저</b>로 열어야 합니다. 다른 PC · 시크릿 창과는 공유되지 않습니다.</td></tr>
+<tr><td>송금 화면에서 계속 "잠시 지연"</td><td>3분 보류 중입니다. 배너의 남은 시간이 지나면 풀립니다. Mock 모드에서는 시연 도우미 → [초기화]로도 풀립니다 (실데이터 모드에서는 게이트웨이 보류가 남으므로 3분을 기다림).</td></tr>
+<tr><td>송금 화면에서 "송금이 제한된 계정"</td><td>2단계에서 동결되었습니다. 관리자 화면 → 해당 사건 → [동결 해제]. Mock 모드에서는 [초기화]로도 풀립니다.</td></tr>
 <tr><td>동결 · 오탐 버튼이 눌리지 않음</td><td>조회 전용(viewer) 계정이거나, 확인 창에서 사유를 4글자 이상 입력하지 않았습니다.</td></tr>
 <tr><td>화면이 계속 바뀌어 보기 어려움</td><td>상단 [● 실시간] 버튼으로 일시정지.</td></tr>
-<tr><td>메인넷 원본 탭이 "시뮬레이션 (RPC 연결 실패)"</td><td>인터넷·방화벽 확인. 공개 RPC 주소 목록은 <code>frontend/src/config.js</code>의 <code>RPC_URLS</code>.</td></tr>
-<tr><td>새로 고침하면 관리자 경보 숫자가 조금 바뀜</td><td>Mock 데이터가 접속 시각 기준으로 다시 만들어지기 때문입니다. 담당자 조치(동결·오탐)와 감사 기록은 유지됩니다.</td></tr>
-<tr><td>페이지가 열리지 않음 / 팀원 PC에서 안 열림</td><td><code>npm run dev</code> 터미널이 켜져 있는지, 주소가 <code>192.168.0.22:8080</code>(콜론)인지, 방화벽 허용(<code>firewall_setup.ps1</code>)과 이 PC의 IP(<code>ipconfig</code>)를 확인.</td></tr>
+<tr><td>메인넷 원본 탭이 "시뮬레이션 (RPC 연결 실패)"</td><td>인터넷·방화벽 확인. 공개 RPC 주소 목록은 <code>web/src/config.js</code>의 <code>RPC_URLS</code>.</td></tr>
+<tr><td>새로 고침하면 관리자 경보 숫자가 조금 바뀜 (Mock 모드)</td><td>Mock 데이터가 접속 시각 기준으로 다시 만들어지기 때문입니다. 담당자 조치(동결·오탐)와 감사 기록은 유지됩니다.</td></tr>
+<tr><td>페이지가 열리지 않음</td><td><code>npm run dev</code> 터미널이 켜져 있는지, 주소가 <code>localhost:8080</code>(콜론)인지 확인. 실행 때 "루트 .env에 GATEWAY_API_KEY / ADMIN_API_KEY가 없습니다" 오류가 나면 저장소 루트 <code>.env</code>에 두 키를 넣습니다.</td></tr>
 <tr><td><code>npm</code>이 "스크립트를 실행할 수 없으므로"</td><td><code>npm.cmd run dev</code> 또는 <code>Set-ExecutionPolicy -Scope CurrentUser RemoteSigned</code></td></tr>
 <tr><td>실행 시 라이브러리를 찾을 수 없다는 오류</td><td>이번 버전에서 라이브러리가 추가되었습니다. <code>npm install</code> 한 번 실행.</td></tr>
 </table>
